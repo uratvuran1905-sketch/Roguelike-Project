@@ -2,7 +2,7 @@
 
 int main() {
     // 800x600 boyutlarinda bir pencere olusturuyoruz
-    sf::RenderWindow window(sf::VideoMode(800, 600), "Dungeon Crawler - Murat Vuran sf::RenderWindow window(sf::VideoMode(800, 600), "Dungeon Crawler - Murat Vuran (SFML OK)");");
+    sf::RenderWindow window(sf::VideoMode(800, 600), "Dungeon Crawler - Murat Vuran (SFML OK)");
 
     // Oyun dongusu: Pencere acik oldugu surece calisir
     while (window.isOpen()) {
@@ -15,9 +15,9 @@ int main() {
 
         // Ekrani tamamen siyaha boya (temizle)
         window.clear(sf::Color::Black);
-        
+
         // Ileride karakterlerimizi buraya cizecegiz
-        
+
         // Ekrani goster
         window.display();
     }
