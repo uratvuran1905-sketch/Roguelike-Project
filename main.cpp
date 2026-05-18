@@ -1,18 +1,15 @@
 #include <SFML/Graphics.hpp>
 
 int main() {
-    // 800x600 boyutlarinda pencere
     sf::RenderWindow window(sf::VideoMode(800, 600), "Dungeon Crawler - Murat Vuran");
     window.setFramerateLimit(60); 
 
-    // Karakterimizi olusturalim (40x40 boyutunda)
     sf::RectangleShape player(sf::Vector2f(40.f, 40.f));
     player.setFillColor(sf::Color::Green);
     player.setPosition(380.f, 280.f); 
 
     float moveSpeed = 5.0f;
 
-    // Oyun dongusu
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
@@ -34,21 +31,20 @@ int main() {
             player.move(moveSpeed, 0.f);
         }
 
-        // --- SINIR KONTROLLERİ (DUVARLAR) ---
+        // --- SINIR KONTROLLERİ (DUVARLAR) - GÜNCELLENDİ ---
         // Karakterin o anki (X, Y) koordinatini aliyoruz
         sf::Vector2f pos = player.getPosition();
 
-        // Sol duvar carpismasi (X sifirdan kucuk olamaz)
-        if (pos.x < 0.f) player.setPosition(0.f, pos.y);
+        // X ekseni (Sağ ve Sol) sinirlarini denetle ve pos degiskenini guncelle
+        if (pos.x < 0.f) pos.x = 0.f;
+        if (pos.x > 760.f) pos.x = 760.f;
         
-        // Sag duvar carpismasi (Pencere 800 genisliginde, karakter 40 genisliginde. 800-40 = 760)
-        if (pos.x > 760.f) player.setPosition(760.f, pos.y);
-        
-        // Ust duvar carpismasi (Y sifirdan kucuk olamaz)
-        if (pos.y < 0.f) player.setPosition(pos.x, 0.f);
-        
-        // Alt duvar carpismasi (Pencere 600 yuksekliginde, karakter 40. 600-40 = 560)
-        if (pos.y > 560.f) player.setPosition(pos.x, 560.f);
+        // Y ekseni (Alt ve Ust) sinirlarini denetle ve pos degiskenini guncelle
+        if (pos.y < 0.f) pos.y = 0.f;
+        if (pos.y > 560.f) pos.y = 560.f;
+
+        // Hesaplama bittikten sonra, temiz ve duzeltilmis konumu tek seferde uygula!
+        player.setPosition(pos);
 
         // --- CIZIM ASAMASI ---
         window.clear(sf::Color::Black);
