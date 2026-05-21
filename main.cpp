@@ -1,30 +1,36 @@
 #include <SFML/Graphics.hpp>
-#include <iostream> // Hata mesajlarini konsola yazdirmak icin eklendi
+#include <iostream>
 
 int main() {
+    // Pencere ayari
     sf::RenderWindow window(sf::VideoMode(800, 600), "Dungeon Crawler - Murat Vuran");
     window.setFramerateLimit(60); 
 
-    // --- GORSELLIK (TEXTURE & SPRITE) ASAMASI ---
-    // 1. Dokuyu (Resmi) olustur ve assets klasorunden yukle
-    sf::Texture playerTexture;
-   if (!playerTexture.loadFromFile("../../assets/player.png")) {
-        // Eger resmi bulamazsa veya isim yanlissa bize haber verecek
-        std::cout << "HATA: player.png dosyasi assets klasorunde bulunamadi!" << std::endl;
+    // --- ZEMIN (FLOOR) GORSELLIGI ---
+    sf::Texture floorTexture;
+    // assets klasorunun dogru yolu
+    if (!floorTexture.loadFromFile("../../assets/floor.png")) {
+        std::cout << "HATA: floor.png bulunamadi!" << std::endl;
     }
+    sf::Sprite floorSprite;
+    floorSprite.setTexture(floorTexture);
 
-   // 2. Sprite (Oyun Ici Obje) olustur ve az onceki dokuyu ona giydir
+    // --- KARAKTER (PLAYER) GORSELLIGI ---
+    sf::Texture playerTexture;
+    // assets klasorunun dogru yolu
+    if (!playerTexture.loadFromFile("../../assets/player.png")) {
+        std::cout << "HATA: player.png bulunamadi!" << std::endl;
+    }
     sf::Sprite player;
     player.setTexture(playerTexture);
-
-    // Karakterin boyutunu yatayda ve dikeyde yari yariya kucult
-    player.setScale(0.4f, 0.4f);
     
-    // Karakterin baslangic konumu
+    // Karakterin boyutunu ve baslangic konumunu ayarla
+    player.setScale(0.5f, 0.5f); 
     player.setPosition(380.f, 280.f); 
 
     float moveSpeed = 5.0f;
 
+    // --- OYUN DONGUSU ---
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
@@ -32,7 +38,7 @@ int main() {
                 window.close();
         }
 
-        // --- HAREKET KONTROLLERİ ---
+        // --- HAREKET KONTROLLERİ (WASD) ---
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) player.move(0.f, -moveSpeed);
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) player.move(0.f, moveSpeed);
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) player.move(-moveSpeed, 0.f);
@@ -40,8 +46,6 @@ int main() {
 
         // --- SINIR KONTROLLERİ ---
         sf::Vector2f pos = player.getPosition();
-        
-        // Yeni resmin genisligini ve yuksekligini oyuna otomatik hesaplatiyoruz ki sinirlar sasmasin
         float playerWidth = player.getGlobalBounds().width;
         float playerHeight = player.getGlobalBounds().height;
 
@@ -55,7 +59,22 @@ int main() {
         // --- CIZIM ASAMASI ---
         window.clear(sf::Color::Black);
         
-        window.draw(player); // Artik yesil kutuyu degil, gercek resmimizi ciziyoruz
+        // 1. Zemini Ciz (Doseme Mantigi)
+        float tileW = floorSprite.getGlobalBounds().width;
+        float tileH = floorSprite.getGlobalBounds().height;
+
+        // Eger resim yuklenmisse ve boyutlari 0'dan buyukse ekrani kapla
+        if (tileW > 0 && tileH > 0) {
+            for (float x = 0; x < 800; x += tileW) {
+                for (float y = 0; y < 600; y += tileH) {
+                    floorSprite.setPosition(x, y);
+                    window.draw(floorSprite); 
+                }
+            }
+        }
+
+        // 2. Karakteri Ciz (Zeminin ustunde kalmasi icin sonra cizilir)
+        window.draw(player); 
         
         window.display();
     }
