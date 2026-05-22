@@ -2,43 +2,44 @@
 #include <iostream>
 
 int main() {
-    // Pencereyi olustur ve fps'i sabitle (yoksa karakter ucuyor)
+    // Pencere ayari
     sf::RenderWindow window(sf::VideoMode(800, 600), "Dungeon Crawler - Murat Vuran");
     window.setFramerateLimit(60); 
 
-    // Zemin texture ve sprite ayarlari
+    // Zemin
     sf::Texture floorTexture;
-    if (!floorTexture.loadFromFile("../../assets/floor.png")) {
-        std::cout << "HATA: floor resmi yok!" << std::endl;
-    }
+    if (!floorTexture.loadFromFile("../../assets/floor.png")) std::cout << "HATA: floor!" << std::endl;
     sf::Sprite floorSprite;
     floorSprite.setTexture(floorTexture);
 
-    // Bizim karakterin ayarlari
+    // Bizim karakter
     sf::Texture playerTexture;
-    if (!playerTexture.loadFromFile("../../assets/player.png")) {
-        std::cout << "HATA: player resmi yok!" << std::endl;
-    }
+    if (!playerTexture.loadFromFile("../../assets/player.png")) std::cout << "HATA: player!" << std::endl;
     sf::Sprite player;
     player.setTexture(playerTexture);
-    player.setScale(0.5f, 0.5f); // resmi yariya kuculttuk
+    player.setScale(0.5f, 0.5f); 
     player.setPosition(380.f, 280.f); 
 
-    // Dusman ayarlari
+    // Dusman (Gecen sefer ayarladigimiz 0.20 oraninda)
     sf::Texture enemyTexture;
-    if (!enemyTexture.loadFromFile("../../assets/enemy.png")) {
-        std::cout << "HATA: enemy resmi yok!" << std::endl;
-    }
+    if (!enemyTexture.loadFromFile("../../assets/enemy.png")) std::cout << "HATA: enemy!" << std::endl;
     sf::Sprite enemy;
     enemy.setTexture(enemyTexture);
     enemy.setScale(0.20f, 0.20f); 
-    enemy.setPosition(700.f, 500.f); // sag alt kosede dogsun
+    enemy.setPosition(700.f, 500.f); 
 
-    // Hizlar (dusman bizden yavas olmali)
+    // --- YENI: CAN SİSTEMİ ---
+    float playerHP = 200.f; // Toplam canimiz
+    
+    // Ekrana cizilecek yesil can bari (Genislik: 200, Yukseklik: 20)
+    sf::RectangleShape hpBar(sf::Vector2f(playerHP, 20.f));
+    hpBar.setFillColor(sf::Color::Green);
+    hpBar.setPosition(20.f, 20.f); // Sol ust kosede dursun
+
     float playerSpeed = 5.0f;
     float enemySpeed = 2.0f; 
 
-    // Oyun dongusu basliyor
+    // Oyun dongusu
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
@@ -46,13 +47,13 @@ int main() {
                 window.close();
         }
 
-        // WASD klavye okuma
+        // --- HAREKET KONTROLLERİ ---
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) player.move(0.f, -playerSpeed);
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) player.move(0.f, playerSpeed);
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) player.move(-playerSpeed, 0.f);
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) player.move(playerSpeed, 0.f);
 
-        // Ekrandan disari cikma bug'ini onlemek icin sinir kontrolu
+        // --- EKRANDAN CIKMA KONTROLU ---
         sf::Vector2f playerPos = player.getPosition();
         float playerW = player.getGlobalBounds().width;
         float playerH = player.getGlobalBounds().height;
@@ -63,18 +64,30 @@ int main() {
         if (playerPos.y > 600.f - playerH) playerPos.y = 600.f - playerH;
         player.setPosition(playerPos);
 
-        // Basit yapay zeka: Dusmanin X ve Y'sini oyuncuya gore guncelle (takip et)
+        // --- YAPAY ZEKA TAKİP ---
         sf::Vector2f enemyPos = enemy.getPosition();
         
         if (enemyPos.x < playerPos.x) enemy.move(enemySpeed, 0.f);
         if (enemyPos.x > playerPos.x) enemy.move(-enemySpeed, 0.f);
-        
         if (enemyPos.y < playerPos.y) enemy.move(0.f, enemySpeed);
         if (enemyPos.y > playerPos.y) enemy.move(0.f, -enemySpeed);
 
-        // Cizim kismi - Once zemin, sonra dusman, en son biz
+        // --- YENI: CARPISMA (HASAR ALMA) KONTROLU ---
+        // Eger dusmanin sinirlari bizim sinirlarimizla kesisiyorsa (degiyorsa)
+        if (player.getGlobalBounds().intersects(enemy.getGlobalBounds())) {
+            playerHP -= 1.0f; // Cani azalt
+            
+            // Can sifirin altina inmesin diye sinir koyduk
+            if (playerHP < 0.f) playerHP = 0.f; 
+            
+            // Yesil barin genisligini guncel canimiza gore ayarla
+            hpBar.setSize(sf::Vector2f(playerHP, 20.f)); 
+        }
+
+        // --- CIZIM ASAMASI ---
         window.clear(sf::Color::Black);
         
+        // Zemin cizimi
         float tileW = floorSprite.getGlobalBounds().width;
         float tileH = floorSprite.getGlobalBounds().height;
         if (tileW > 0 && tileH > 0) {
@@ -88,6 +101,9 @@ int main() {
 
         window.draw(enemy);  
         window.draw(player); 
+        
+        // En son can barini ciziyoruz ki her seyin ustunde gorunsun
+        window.draw(hpBar);
         
         window.display();
     }
